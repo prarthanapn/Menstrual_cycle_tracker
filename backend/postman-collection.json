@@ -1,0 +1,132 @@
+{
+  "info": {
+    "name": "Menstrual Health Tracker API",
+    "description": "Complete API collection for testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/auth/register", "protocol": "http", "host": ["localhost"], "port": ["5000"], "path": ["api", "auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sarah Johnson\",\n  \"email\": \"sarah@example.com\",\n  \"password\": \"securepass123\",\n  \"dob\": \"1995-03-15\",\n  \"age_group\": \"adult\",\n  \"height_cm\": 165.5,\n  \"weight_kg\": 62.0,\n  \"blood_group\": \"O+\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/auth/login", "protocol": "http", "host": ["localhost"], "port": ["5000"], "path": ["api", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"sarah@example.com\",\n  \"password\": \"securepass123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cycles",
+      "item": [
+        {
+          "name": "Create Cycle",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/cycles", "protocol": "http", "host": ["localhost"], "port": ["5000"], "path": ["api", "cycles"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"start_date\": \"2024-12-24\",\n  \"flow_level\": \"medium\",\n  \"pain_level\": 3,\n  \"notes\": \"Regular cycle\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get User Cycles",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/cycles/1", "protocol": "http", "host": ["localhost"], "port": ["5000"], "path": ["api", "cycles", "1"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Symptoms",
+      "item": [
+        {
+          "name": "Log Symptom",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/symptoms", "protocol": "http", "host": ["localhost"], "port": ["5000"], "path": ["api", "symptoms"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cycle_id\": 1,\n  \"log_date\": \"2024-12-25\",\n  \"mood\": \"irritable\",\n  \"cramps\": true,\n  \"headache\": true,\n  \"bloating\": true,\n  \"nausea\": false,\n  \"notes\": \"Feeling emotional today\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Generate Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/reports/generate", "protocol": "http", "host": ["localhost"], "port": ["5000"], "path": ["api", "reports", "generate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"doctor_email\": \"doctor@example.com\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chatbot",
+      "item": [
+        {
+          "name": "Chat Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer YOUR_TOKEN_HERE" }
+            ],
+            "url": { "raw": "http://localhost:5000/api/chat", "protocol": "http", "host": ["localhost"], "port": ["5000"], "path": ["api", "chat"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_message\": \"What can I do about heavy periods?\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
