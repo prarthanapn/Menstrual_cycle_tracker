@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Star, Calendar, MessageSquare, Zap, MessageCircle } from 'react-feather'
 
 function Onboarding({ setUser }) {
   const [step, setStep] = useState(0)
@@ -9,27 +10,27 @@ function Onboarding({ setUser }) {
     {
       title: 'Welcome to HarmonyCycle',
       content: 'Your safe space for tracking menstrual health',
-      emoji: '🌸'
+      icon: Star
     },
     {
       title: 'Track Your Cycle',
       content: 'Monitor your menstrual cycle and understand your patterns',
-      emoji: '📅'
+      icon: Calendar
     },
     {
       title: 'Log Your Symptoms',
       content: 'Record how you feel with mood, flow, and symptoms',
-      emoji: '💭'
+      icon: MessageSquare
     },
     {
       title: 'Get Insights',
       content: 'Receive AI-powered insights and health recommendations',
-      emoji: '✨'
+      icon: Zap
     },
     {
       title: 'Chat with Our AI',
       content: 'Ask questions and get personalized health guidance',
-      emoji: '🤖'
+      icon: MessageCircle
     }
   ]
 
@@ -48,8 +49,8 @@ function Onboarding({ setUser }) {
   return (
     <div className="container" style={{ maxWidth: '500px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
       <div style={{ textAlign: 'center', marginBottom: '60px' }}>
-        <div style={{ fontSize: '80px', marginBottom: '24px', animation: 'float 3s ease-in-out infinite' }}>
-          {steps[step].emoji}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '24px', animation: 'float 3s ease-in-out infinite' }}>
+          {React.createElement(steps[step].icon, { size: 80, color: 'var(--primary)' })}
         </div>
         <h1 style={{ fontSize: '32px', fontWeight: '700', marginBottom: '16px' }}>
           {steps[step].title}

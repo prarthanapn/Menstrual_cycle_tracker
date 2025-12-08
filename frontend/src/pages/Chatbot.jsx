@@ -1,147 +1,173 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { chatbotAPI } from '../api'
+import BottomNav from '../components/BottomNav'
+import { Send } from 'react-feather'
 
-function Chatbot({ user }) {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      type: 'bot',
-      text: 'Hello! I\'m HarmonyCycle\'s AI companion. I\'m here to answer questions about your menstrual health, provide wellness tips, and support your health journey. What can I help you with today?'
-    }
-  ])
+function Chatbot() {
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
-  const [loading, setLoading] = useState(false)
-  const messagesEndRef = useRef(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const [sending, setSending] = useState(false)
+  const endRef = useRef(null)
 
   useEffect(() => {
     scrollToBottom()
   }, [messages])
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault()
-    if (!input.trim()) return
-
-    const userMessage = {
-      id: Date.now(),
-      type: 'user',
-      text: input
+  const scrollToBottom = () => {
+    try {
+      endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    } catch (e) {
+      // ignore
     }
+  }
 
-    setMessages(prev => [...prev, userMessage])
+  const handleSend = async () => {
+    const text = input.trim()
+    if (!text || sending) return
+
+    const userMsg = { id: Date.now() + '-u', sender: 'user', text }
+    setMessages((prev) => [...prev, userMsg])
     setInput('')
-    setLoading(true)
+    setSending(true)
 
     try {
-      const response = await chatbotAPI.sendMessage(input)
-      const botMessage = {
-        id: Date.now() + 1,
-        type: 'bot',
-        text: response.data.reply || response.data.bot_response || response.data.message || 'Thank you for your question. For personalized medical advice, please consult a healthcare professional.'
-      }
-      setMessages(prev => [...prev, botMessage])
-    } catch (error) {
-      const errorMessage = {
-        id: Date.now() + 1,
-        type: 'bot',
-        text: 'I apologize, I\'m having trouble responding right now. Please try again later.'
-      }
-      setMessages(prev => [...prev, errorMessage])
+      const res = await chatbotAPI.sendMessage(text)
+      const botText = res?.data?.bot_response ?? 'I could not process your message. Please try again.'
+      const triage = res?.data?.triage_level ?? 'normal'
+
+      const botMsg = { id: Date.now() + '-b', sender: 'bot', text: botText, triage }
+      setMessages((prev) => [...prev, botMsg])
+    } catch (err) {
+      const errorText = err.response?.data?.error || 'Sorry, I encountered an error. Please try again.'
+      const botMsg = { id: Date.now() + '-b', sender: 'bot', text: errorText, triage: 'normal' }
+      setMessages((prev) => [...prev, botMsg])
     } finally {
-      setLoading(false)
+      setSending(false)
+    }
+  }
+
+  const getBadgeStyle = (triage) => {
+    switch (triage) {
+      case 'urgent':
+        return { background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)' }
+      case 'see_doctor':
+        return { background: 'rgba(245, 158, 11, 0.1)', color: 'var(--warning)' }
+      default:
+        return { background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)' }
     }
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: '#faf9f7' }}>
-      <div style={{ padding: '20px', borderBottom: '1px solid #f0e8f5', backgroundColor: 'white' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '4px' }}>Health Chat</h1>
-        <p style={{ fontSize: '14px', color: '#8b7a8f' }}>Ask me anything about your health</p>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', display: 'flex', flexDirection: 'column', paddingBottom: '120px' }}>
+      {/* Header */}
+      <div style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', padding: '16px 0', stickyTop: 0 }}>
+        <div className="container">
+          <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+            Health Assistant 💬
+          </h1>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+            Ask me anything about your health
+          </p>
+        </div>
       </div>
 
-      <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '80px' }}>
-        {messages.map(message => (
-          <div
-            key={message.id}
-            style={{
-              display: 'flex',
-              justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start'
-            }}
-          >
+      {/* Messages */}
+      <div className="container" style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '12px', paddingTop: '20px', overflowY: 'auto' }}>
+        {messages.length === 0 && (
+          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '40px 0' }}>
+            <div style={{ fontSize: '40px', marginBottom: '12px' }}>👋</div>
+            <p>Hi! I'm your health assistant. Ask me any questions about your menstrual health.</p>
+          </div>
+        )}
+
+        {messages.map((msg) => (
+          <div key={msg.id} style={{ display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
             <div
               style={{
                 maxWidth: '80%',
                 padding: '12px 16px',
-                borderRadius: '16px',
-                backgroundColor: message.type === 'user' ? '#d89fc2' : 'white',
-                color: message.type === 'user' ? 'white' : '#2d2624',
-                border: message.type === 'user' ? 'none' : '1px solid #f0e8f5',
-                lineHeight: '1.5'
+                borderRadius: msg.sender === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                background: msg.sender === 'user' ? 'var(--primary)' : 'var(--bg-primary)',
+                color: msg.sender === 'user' ? 'white' : 'var(--text-primary)',
+                fontSize: '14px',
+                lineHeight: '1.5',
+                boxShadow: msg.sender === 'user' ? 'var(--shadow-md)' : 'none',
+                border: msg.sender === 'bot' ? '1px solid var(--border-color)' : 'none',
               }}
             >
-              {message.text}
+              <div>{msg.text}</div>
+              {msg.sender === 'bot' && msg.triage && (
+                <div
+                  style={{
+                    marginTop: '8px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    ...getBadgeStyle(msg.triage),
+                    display: 'inline-block',
+                    padding: '4px 8px',
+                    borderRadius: '4px',
+                  }}
+                >
+                  {msg.triage === 'urgent' ? '🚨 Urgent' : msg.triage === 'see_doctor' ? '⚠️ Consult Doctor' : '✅ Normal'}
+                </div>
+              )}
             </div>
           </div>
         ))}
-        {loading && (
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#d89fc2', animation: 'bounce 1.4s infinite' }} />
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#d89fc2', animation: 'bounce 1.4s infinite 0.2s' }} />
-            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#d89fc2', animation: 'bounce 1.4s infinite 0.4s' }} />
-          </div>
-        )}
-        <div ref={messagesEndRef} />
+
+        <div ref={endRef} />
       </div>
 
-      <form
-        onSubmit={handleSendMessage}
+      {/* Input */}
+      <div
         style={{
           position: 'fixed',
-          bottom: '80px',
-          left: '0',
-          right: '0',
-          padding: '16px 20px',
-          backgroundColor: 'white',
-          borderTop: '1px solid #f0e8f5',
-          display: 'flex',
-          gap: '12px'
+          bottom: '70px',
+          left: 0,
+          right: 0,
+          background: 'var(--bg-primary)',
+          borderTop: '1px solid var(--border-color)',
+          padding: '12px 0',
         }}
       >
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask a question..."
-          disabled={loading}
-          style={{
-            flex: 1,
-            padding: '12px',
-            border: '1px solid #f0e8f5',
-            borderRadius: '24px',
-            fontSize: '16px'
-          }}
-        />
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="btn btn-primary"
-          style={{ borderRadius: '24px', padding: '12px 24px' }}
-        >
-          Send
-        </button>
-      </form>
+        <div className="container" style={{ display: 'flex', gap: '8px' }}>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            placeholder="Ask a question..."
+            disabled={sending}
+            style={{
+              flex: 1,
+              padding: '10px 12px',
+              border: '1px solid var(--border-color)',
+              borderRadius: '8px',
+              fontSize: '14px',
+              color: 'var(--text-primary)',
+            }}
+          />
+          <button
+            onClick={handleSend}
+            disabled={sending || !input.trim()}
+            className="btn btn-primary"
+            style={{
+              padding: '10px 16px',
+              minWidth: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Send size={18} />
+          </button>
+        </div>
+      </div>
 
-      <style>{`
-        @keyframes bounce {
-          0%, 80%, 100% { transform: translateY(0); }
-          40% { transform: translateY(-8px); }
-        }
-      `}</style>
+      <BottomNav />
     </div>
   )
 }
 
 export default Chatbot
+

@@ -56,6 +56,45 @@ router.post('/', verifyToken, async (req, res) => {
   }
 });
 
+// GET /api/symptoms
+// Get all symptoms for the current user
+router.get('/', verifyToken, async (req, res) => {
+  try {
+    const connection = await pool.getConnection();
+
+    const [symptoms] = await connection.execute(
+      `SELECT s.* FROM symptoms s
+       INNER JOIN cycle_records c ON s.cycle_id = c.cycle_id
+       WHERE c.user_id = ? ORDER BY s.log_date DESC`,
+      [req.userId]
+    );
+
+    connection.release();
+
+    // Format symptoms data
+    const formattedSymptoms = symptoms.map(s => ({
+      symptom_id: s.symptom_id,
+      cycle_id: s.cycle_id,
+      log_date: s.log_date,
+      mood: s.mood,
+      symptoms: [
+        s.cramps && 'Cramps',
+        s.headache && 'Headache',
+        s.bloating && 'Bloating',
+        s.nausea && 'Nausea'
+      ].filter(Boolean),
+      discharge: s.discharge,
+      notes: s.notes,
+      flow_level: s.flow_level
+    }));
+
+    res.status(200).json(formattedSymptoms);
+  } catch (error) {
+    console.error('Get all symptoms error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // GET /api/symptoms/:cycleId
 // Get all symptoms for a cycle
 router.get('/:cycleId', verifyToken, async (req, res) => {

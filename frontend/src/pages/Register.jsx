@@ -1,61 +1,39 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authAPI } from '../api'
 
 function Register({ setUser }) {
-  const [step, setStep] = useState(0)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    age_group: '',
     dob: '',
+    age_group: 'adult',
     height_cm: '',
     weight_kg: '',
-    blood_group: ''
+    blood_group: 'O+'
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
-  const questions = [
-    { key: 'name', question: "Hi! What's your name?", type: 'text', placeholder: 'Enter your full name' },
-    { key: 'email', question: "Great! What's your email address?", type: 'email', placeholder: 'Enter your email' },
-    { key: 'password', question: "Create a secure password", type: 'password', placeholder: 'Enter password' },
-    { key: 'confirmPassword', question: "Confirm your password", type: 'password', placeholder: 'Confirm password' },
-    { key: 'age_group', question: "Are you a teen or adult?", type: 'select', options: ['teen', 'adult'] },
-    { key: 'dob', question: "When were you born?", type: 'date' },
-    { key: 'height_cm', question: "What's your height in cm?", type: 'number', placeholder: 'e.g., 165' },
-    { key: 'weight_kg', question: "What's your weight in kg?", type: 'number', placeholder: 'e.g., 60' },
-    { key: 'blood_group', question: "What's your blood group?", type: 'select', options: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] }
-  ]
-
-  const handleChange = (value) => {
-    setFormData(prev => ({
-      ...prev,
-      [questions[step].key]: value
-    }))
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
   }
 
-  const handleNext = () => {
-    if (step === 2 && formData.password.length < 6) {
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setError('')
+    if (!formData.name || !formData.email || !formData.password) {
+      setError('Please fill the required fields')
+      return
+    }
+    if (formData.password.length < 6) {
       setError('Password must be at least 6 characters')
       return
     }
-    if (step === 3 && formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-    setError('')
-    if (step < questions.length - 1) {
-      setStep(step + 1)
-    } else {
-      handleSubmit()
-    }
-  }
 
-  const handleSubmit = async () => {
     setLoading(true)
     try {
       const response = await authAPI.register(
@@ -64,166 +42,196 @@ function Register({ setUser }) {
         formData.password,
         formData.dob,
         formData.age_group,
-        parseInt(formData.height_cm),
-        parseInt(formData.weight_kg),
+        formData.height_cm ? parseInt(formData.height_cm) : null,
+        formData.weight_kg ? parseInt(formData.weight_kg) : null,
         formData.blood_group
       )
-      localStorage.setItem('token', response.data.token)
-      localStorage.setItem('user', JSON.stringify(response.data.user))
-      setUser(response.data.user)
-      navigate('/dashboard')
+
+      // If backend returns token + user, store and log in
+      if (response?.data?.token && response?.data?.user) {
+        localStorage.setItem('token', response.data.token)
+        localStorage.setItem('user', JSON.stringify(response.data.user))
+        setUser && setUser(response.data.user)
+        navigate('/dashboard')
+      } else {
+        // otherwise redirect to login page
+        navigate('/login')
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed')
+      setError(err.response?.data?.error || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
-  const currentQuestion = questions[step]
-
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #FDECEF 0%, #F6F0FF 50%, #FFF3E4 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'white',
-        borderRadius: '20px',
-        padding: '40px 30px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-        maxWidth: '400px',
-        width: '100%',
-        textAlign: 'center'
-      }}>
-        <div style={{ marginBottom: '30px' }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: '50%',
-            background: '#FFE7EF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 20px',
-            fontSize: '24px'
-          }}>
-            💕
+    <div style={{ minHeight: '100vh', background: 'var(--bg-secondary)', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
+      {/* Header */}
+      <div style={{ width: '100%', maxWidth: '900px', marginBottom: '40px', paddingTop: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
+              <span style={{ color: 'white', fontWeight: 700, fontSize: '18px' }}>♀️</span>
+            </div>
+            <h1 style={{ color: 'var(--primary)', fontSize: '20px', fontWeight: 700, margin: 0 }}>HarmonyCycle</h1>
           </div>
-          <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '8px', color: '#2d2624' }}>
-            Welcome to HarmonyCycle
+          <nav style={{ display: 'flex', gap: '24px' }}>
+            <Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = 'var(--primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}>Home</Link>
+            <Link to="/about" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = 'var(--primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}>About</Link>
+            <Link to="/login" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = 'var(--primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}>Login</Link>
+          </nav>
+        </div>
+      </div>
+
+      {/* Form Card */}
+      <div style={{ width: '100%', maxWidth: '420px' }} className="card">
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ fontSize: '40px', marginBottom: '16px' }}>🌸</div>
+          <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px', margin: 0 }}>
+            Create Account
           </h1>
-          <p style={{ color: '#8b7a8f', fontSize: '14px' }}>
+          <p style={{ fontSize: '14px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
             Let's get to know you better
           </p>
         </div>
 
-        <div style={{ marginBottom: '30px' }}>
-          <h2 style={{
-            fontSize: '18px',
-            fontWeight: '600',
-            marginBottom: '20px',
-            color: '#2d2624'
-          }}>
-            {currentQuestion.question}
-          </h2>
-
-          {currentQuestion.type === 'select' ? (
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-              {currentQuestion.options.map(option => (
-                <button
-                  key={option}
-                  onClick={() => handleChange(option)}
-                  style={{
-                    padding: '12px 20px',
-                    borderRadius: '25px',
-                    border: formData[currentQuestion.key] === option ? '2px solid #d89fc2' : '1px solid #f0e8f5',
-                    background: formData[currentQuestion.key] === option ? '#fdecef' : 'white',
-                    cursor: 'pointer',
-                    fontWeight: '500',
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  {option.charAt(0).toUpperCase() + option.slice(1)}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <input
-              type={currentQuestion.type}
-              value={formData[currentQuestion.key]}
-              onChange={(e) => handleChange(e.target.value)}
-              placeholder={currentQuestion.placeholder}
-              style={{
-                width: '100%',
-                padding: '15px',
-                border: '1px solid #f0e8f5',
-                borderRadius: '12px',
-                fontSize: '16px',
-                background: '#faf9f7',
-                transition: 'border-color 0.3s ease'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#d89fc2'}
-              onBlur={(e) => e.target.style.borderColor = '#f0e8f5'}
-            />
-          )}
-        </div>
-
+        {/* Error Message */}
         {error && (
-          <div style={{
-            color: '#ef4444',
-            fontSize: '14px',
-            marginBottom: '20px',
-            padding: '10px',
-            background: '#fef2f2',
-            borderRadius: '8px'
-          }}>
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '12px', marginBottom: '20px', color: 'var(--danger)', fontSize: '14px' }}>
             {error}
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-          {step > 0 && (
-            <button
-              onClick={() => setStep(step - 1)}
-              style={{
-                padding: '12px 24px',
-                borderRadius: '25px',
-                border: '1px solid #f0e8f5',
-                background: 'white',
-                cursor: 'pointer',
-                fontWeight: '500'
-              }}
-            >
-              Back
-            </button>
-          )}
-          <button
-            onClick={handleNext}
-            disabled={!formData[currentQuestion.key] || loading}
-            style={{
-              padding: '12px 24px',
-              borderRadius: '25px',
-              border: 'none',
-              background: '#d89fc2',
-              color: 'white',
-              cursor: formData[currentQuestion.key] && !loading ? 'pointer' : 'not-allowed',
-              fontWeight: '600',
-              opacity: formData[currentQuestion.key] && !loading ? 1 : 0.6
-            }}
-          >
-            {loading ? 'Creating...' : step === questions.length - 1 ? 'Complete' : 'Next'}
-          </button>
-        </div>
+        {/* Form */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ marginBottom: '8px', display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Full Name</label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="e.g., Sarah Johnson"
+              required
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '15px', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+            />
+          </div>
 
-        <div style={{ marginTop: '30px', textAlign: 'center' }}>
-          <span style={{ color: '#8b7a8f', fontSize: '14px' }}>Already have an account? </span>
-          <Link to="/login" style={{ color: '#d89fc2', textDecoration: 'none', fontWeight: '600' }}>
-            Sign In
+          <div>
+            <label style={{ marginBottom: '8px', display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Email Address</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              required
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '15px', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+            />
+          </div>
+
+          <div>
+            <label style={{ marginBottom: '8px', display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Password</label>
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              required
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '15px', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+            />
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>8+ characters recommended</p>
+          </div>
+
+          <div>
+            <label style={{ marginBottom: '8px', display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Date of Birth</label>
+            <input
+              type="date"
+              name="dob"
+              value={formData.dob}
+              onChange={handleChange}
+              style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '15px', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ marginBottom: '8px', display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Age Group</label>
+              <select
+                name="age_group"
+                value={formData.age_group}
+                onChange={handleChange}
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '15px', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+              >
+                <option value="teen">Teen</option>
+                <option value="adult">Adult</option>
+                <option value="senior">Senior</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ marginBottom: '8px', display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Blood Group</label>
+              <select
+                name="blood_group"
+                value={formData.blood_group}
+                onChange={handleChange}
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '15px', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+              >
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+              </select>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ marginBottom: '8px', display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Height (cm)</label>
+              <input
+                type="number"
+                name="height_cm"
+                value={formData.height_cm}
+                onChange={handleChange}
+                placeholder="165"
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '15px', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div>
+              <label style={{ marginBottom: '8px', display: 'block', fontSize: '14px', fontWeight: 500, color: 'var(--text-primary)' }}>Weight (kg)</label>
+              <input
+                type="number"
+                name="weight_kg"
+                value={formData.weight_kg}
+                onChange={handleChange}
+                placeholder="60"
+                style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--border-color)', borderRadius: '8px', fontSize: '15px', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary"
+            style={{ width: '100%', padding: '12px', fontSize: '16px', fontWeight: 600, marginTop: '8px' }}
+          >
+            {loading ? 'Creating Account...' : 'Create Account'}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div style={{ textAlign: 'center', marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border-color)', fontSize: '14px', color: 'var(--text-secondary)' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600, cursor: 'pointer' }}>
+            Sign in
           </Link>
         </div>
       </div>

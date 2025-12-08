@@ -4,8 +4,6 @@ import pool from '../db.js';
 
 const router = express.Router();
 
-// GET /api/users (protected)
-// Get all users (admin only, but returning current user for demo)
 router.get('/', verifyToken, async (req, res) => {
   try {
     const connection = await pool.getConnection();
@@ -23,13 +21,10 @@ router.get('/', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/users/:id (protected)
-// Get specific user by ID
 router.get('/:id', verifyToken, async (req, res) => {
   try {
     const userId = req.params.id;
 
-    // Users can only access their own data
     if (parseInt(userId) !== req.userId) {
       return res.status(403).json({ error: 'Unauthorized access' });
     }

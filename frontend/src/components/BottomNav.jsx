@@ -1,16 +1,18 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
+import { Home, Calendar, Edit, BookOpen, MessageCircle, FileText, User } from 'react-feather'
 
 function BottomNav() {
   const location = useLocation()
 
   const navItems = [
-    { path: '/dashboard', label: 'Home', icon: '🏠' },
-    { path: '/track', label: 'Track', icon: '📅' },
-    { path: '/symptoms', label: 'Log', icon: '📝' },
-    { path: '/education', label: 'Learn', icon: '📚' },
-    { path: '/chatbot', label: 'Chat', icon: '💬' },
-    { path: '/profile', label: 'Profile', icon: '👤' }
+    { path: '/dashboard', label: 'Home', icon: <Home size={20} /> },
+    { path: '/calendar', label: 'Calendar', icon: <Calendar size={20} /> },
+    { path: '/symptoms', label: 'Log', icon: <Edit size={20} /> },
+    { path: '/education', label: 'Learn', icon: <BookOpen size={20} /> },
+    { path: '/chatbot', label: 'Chat', icon: <MessageCircle size={20} /> },
+    { path: '/reports', label: 'Reports', icon: <FileText size={20} /> },
+    { path: '/profile', label: 'Profile', icon: <User size={20} /> }
   ]
 
   return (
@@ -20,16 +22,17 @@ function BottomNav() {
         bottom: '0',
         left: '0',
         right: '0',
-        backgroundColor: 'white',
-        borderTop: '1px solid #f0e8f5',
+        backgroundColor: 'var(--bg-primary)',
+        borderTop: '1px solid var(--border-color)',
         padding: '8px 0',
         display: 'grid',
-        gridTemplateColumns: 'repeat(6, 1fr)',
+        gridTemplateColumns: `repeat(${navItems.length}, 1fr)`,
         gap: '0',
-        zIndex: '100'
+        zIndex: 100,
+        boxShadow: 'var(--shadow-md)'
       }}
     >
-      {navItems.map(item => (
+      {navItems.map((item) => (
         <Link
           key={item.path}
           to={item.path}
@@ -40,14 +43,14 @@ function BottomNav() {
             justifyContent: 'center',
             padding: '8px 0',
             textDecoration: 'none',
-            color: location.pathname === item.path ? '#d89fc2' : '#8b7a8f',
+            color: location.pathname === item.path ? 'var(--primary)' : 'var(--text-tertiary)',
             fontWeight: location.pathname === item.path ? '600' : '500',
             fontSize: '12px',
-            borderTop: location.pathname === item.path ? '2px solid #d89fc2' : 'none',
-            transition: 'all 0.3s ease'
+            borderTop: location.pathname === item.path ? '3px solid var(--primary)' : 'none',
+            transition: 'all 0.2s ease'
           }}
         >
-          <div style={{ fontSize: '24px', marginBottom: '4px' }}>{item.icon}</div>
+          <div style={{ marginBottom: '4px', color: 'inherit' }}>{item.icon}</div>
           <span>{item.label}</span>
         </Link>
       ))}

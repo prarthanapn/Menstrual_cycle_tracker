@@ -24,17 +24,33 @@ export const authAPI = {
 }
 
 export const cyclesAPI = {
-  add: (start_date, end_date, flow_level, pain_level, notes) =>
-    api.post('/cycles', { start_date, end_date, flow_level, pain_level, notes }),
-  getAll: () =>
-    api.get('/cycles'),
+  create: (data) =>
+    api.post('/cycles', data),
+  // getAll will request cycles for the current logged-in user if available
+  getAll: () => {
+    try {
+      const userStr = localStorage.getItem('user')
+      const user = userStr ? JSON.parse(userStr) : null
+      const userId = user?.user_id || user?.userId || null
+      if (userId) return api.get(`/cycles/${userId}`)
+    } catch (e) {
+      // ignore parse errors and fallback
+    }
+    return api.get('/cycles')
+  },
+  update: (id, data) =>
+    api.put(`/cycles/${id}`, data),
+  delete: (id) =>
+    api.delete(`/cycles/${id}`),
 }
 
 export const symptomsAPI = {
-  add: (cycle_id, date, flow, mood, symptoms, notes) =>
-    api.post('/symptoms', { cycle_id, date, flow, mood, symptoms, notes }),
+  log: (data) =>
+    api.post('/symptoms', data),
   getByCycle: (cycle_id) =>
     api.get(`/symptoms/${cycle_id}`),
+  getAll: () =>
+    api.get('/symptoms'),
 }
 
 export const chatbotAPI = {

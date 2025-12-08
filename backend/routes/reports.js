@@ -5,6 +5,7 @@ import { generatePDFReport } from '../utils/pdf-generator.js';
 import { generateAISummary } from '../utils/ai-helper.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const router = express.Router();
@@ -109,3 +110,36 @@ router.get('/:userId', verifyToken, async (req, res) => {
 });
 
 export default router;
+
+// GET /api/reports/download/:filename
+// Serve a generated PDF report file securely
+router.get('/download/:filename', verifyToken, async (req, res) => {
+  try {
+    const { filename } = req.params;
+    if (!filename || typeof filename !== 'string') {
+      return res.status(400).json({ error: 'Filename required' });
+    }
+
+    const reportsDir = path.join(__dirname, '..', 'reports');
+    const filePath = path.resolve(reportsDir, filename);
+
+    // Prevent directory traversal: ensure filePath starts with reportsDir
+    if (!filePath.startsWith(path.resolve(reportsDir))) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+
+    res.download(filePath, filename, (err) => {
+      if (err) {
+        console.error('Download error:', err);
+        if (!res.headersSent) res.status(500).json({ error: 'Failed to download file' });
+      }
+    });
+  } catch (error) {
+    console.error('Download route error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
