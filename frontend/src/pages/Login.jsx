@@ -50,14 +50,7 @@ function Login({ setUser }) {
       >
         {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div
-            style={{
-              fontSize: '40px',
-              marginBottom: '16px',
-            }}
-          >
-            ♀️
-          </div>
+          <img src="/logo.png" alt="HarmonyCycle" style={{ height: '100px', width: 'auto', marginBottom: '16px', margin: '0 auto 16px' }} />
           <h1 style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
             Welcome Back
           </h1>

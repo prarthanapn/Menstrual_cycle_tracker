@@ -120,12 +120,12 @@ export const generatePDFReport = (user, cycles, symptoms, summary, filepath) => 
           drawTableRow([startDate, endDate, length, flow, pain, status], bgColor, false);
         });
 
-        doc.moveDown(0.8);
+        doc.moveDown(0.9);
       }
 
       // === STATISTICS SECTION ===
       if (cycles.length > 0) {
-        doc.fontSize(14).font('Helvetica-Bold').fillColor(primaryColor).text('Cycle Statistics');
+        doc.fontSize(14).font('Helvetica-Bold').fillColor(primaryColor).text('Cycle Statistics', { align: 'left' });
         doc.moveDown(0.4);
 
         const avgLength = Math.round(cycles.reduce((sum, c) => sum + (c.cycle_length || 0), 0) / cycles.length);
@@ -157,7 +157,7 @@ export const generatePDFReport = (user, cycles, symptoms, summary, filepath) => 
       // === SYMPTOMS SECTION ===
       if (symptoms.length > 0) {
         doc.fontSize(14).font('Helvetica-Bold').fillColor(primaryColor).text('Symptom Summary');
-        doc.moveDown(0.3);
+        doc.moveDown(0.4);
 
         const symptomCounts = {};
         symptoms.forEach(s => {

@@ -26,9 +26,9 @@ router.post('/generate', verifyToken, async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Fetch last 6 cycles
+    // Fetch last 7 cycles
     const [cycles] = await connection.execute(
-      `SELECT * FROM cycle_records WHERE user_id = ? ORDER BY start_date DESC LIMIT 6`,
+      `SELECT * FROM cycle_records WHERE user_id = ? ORDER BY start_date DESC LIMIT 7`,
       [userId]
     );
 

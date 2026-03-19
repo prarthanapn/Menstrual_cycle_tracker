@@ -368,9 +368,9 @@ export default function Education() {
           </h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
             {[
-              { myth: 'Myth: You can\'t get pregnant during your period.', fact: 'Fact: While less likely, it\'s possible to ovulate early and conceive during menstruation.' },
+              { myth: 'Myth: You shouldn’t talk about periods openly.', fact: 'Fact: Open conversations help reduce stigma and ensure teens get the support they need at school, home, and with friends.' },
               { myth: 'Myth: PMS is just in your head.', fact: 'Fact: PMS is a real hormonal condition affecting mood, energy, and physical symptoms.' },
-              { myth: 'Myth: Menstruation stops during pregnancy.', fact: 'Fact: Some women experience light bleeding early in pregnancy, but true periods stop.' },
+              { myth: 'Myth: You can’t play sports or exercise during your period.', fact: 'Fact:Light to moderate exercise can actually help reduce cramps and boost mood. Many athletes train and compete while menstruating.' },
               { myth: 'Myth: Exercise worsens menstrual cramps.', fact: 'Fact: Light exercise can actually help reduce cramps by releasing endorphins.' },
               { myth: 'Myth: All women have 28-day cycles.', fact: 'Fact: Normal cycles range from 21-35 days; variations are common and usually normal.' },
               { myth: 'Myth: Tampons can get lost inside you.', fact: 'Fact: Tampons cannot travel beyond the vagina; they stay in place until removed.' },

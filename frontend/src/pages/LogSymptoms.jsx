@@ -9,15 +9,15 @@ const moodOptions = [
   { value: 'happy', icon: Smile, label: 'Happy' },
   { value: 'neutral', icon: Meh, label: 'Neutral' },
   { value: 'sad', icon: Frown, label: 'Sad' },
-  { value: 'irritable', icon: Zap, label: 'Irritable' },
+  { value: 'irritable', icon: Zap, label: 'Irritated' },
   { value: 'tired', icon: AlertCircle, label: 'Tired' },
 ]
 
 const dischargeOptions = [
   { value: 'clear', label: 'Clear' },
-  { value: 'white', label: 'White' },
-  { value: 'yellow', label: 'Yellow' },
-  { value: 'sticky', label: 'Sticky' },
+  { value: 'thick', label: 'Thick' },
+  { value: 'watery', label: 'Watery' },
+  { value: 'stick', label: 'Sticky' },
   { value: 'none', label: 'None' },
 ]
 
@@ -260,7 +260,7 @@ function LogSymptoms() {
       <div style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', padding: '16px 0' }}>
         <div className="container">
           <h1 style={{ fontSize: '24px', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
-            Log Symptoms 📝
+            Log Symptoms 
           </h1>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
             Track how you're feeling throughout your cycle

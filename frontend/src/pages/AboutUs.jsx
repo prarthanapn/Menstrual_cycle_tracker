@@ -19,11 +19,7 @@ const AboutUs = () => {
     <div style={{ background: '#fff7f9', minHeight: '100vh' }} className="py-6 px-4">
       <header className="container mx-auto flex items-center justify-between mb-6">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="3" fill="#ff5c77" />
-            <path d="M12 2c1 3 4 4 7 4s4 3 4 6-3 6-6 6-6-3-7-6-4-4-7-4  -4-3-4-6 3-6 6-6 6 3 7 6z" fill="#ffe4ec" opacity="0.9" />
-          </svg>
-          <h1 style={{ color: '#ff5c77', fontSize: 22, fontWeight: 700 }}>HarmonyCycle</h1>
+          <img src="/logo.png" alt="HarmonyCycle" style={{ height: '100px', width: 'auto' }} />
         </div>
         <nav className="hidden sm:flex" style={{ display: 'flex', gap: 12 }}>
           <Link to="/" style={{ color: '#ff5c77', fontWeight: 600 }}>Home</Link>

@@ -1,9 +1,11 @@
+// MySQL database connection pool
 import mysql from 'mysql2/promise.js';
 import dotenv from 'dotenv';
 
+// Load environment variables
 dotenv.config();
 
-// Create a connection pool
+// Create connection pool (10 max connections)
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
@@ -14,14 +16,14 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
-// Test the connection
+// Test database connection on startup
 (async () => {
   try {
     const connection = await pool.getConnection();
-    console.log('✅ Database connected successfully');
+    console.log('[DATABASE] Connected successfully');
     connection.release();
   } catch (error) {
-    console.error('❌ Database connection failed:', error.message);
+    console.error('[DATABASE] Connection failed:', error.message);
   }
 })();
 

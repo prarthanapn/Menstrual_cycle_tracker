@@ -70,10 +70,7 @@ function Register({ setUser }) {
       <div style={{ width: '100%', maxWidth: '900px', marginBottom: '40px', paddingTop: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: 'var(--shadow-md)' }}>
-              <span style={{ color: 'white', fontWeight: 700, fontSize: '18px' }}>♀️</span>
-            </div>
-            <h1 style={{ color: 'var(--primary)', fontSize: '20px', fontWeight: 700, margin: 0 }}>HarmonyCycle</h1>
+            <img src="/logo.png" alt="HarmonyCycle" style={{ height: '100px', width: 'auto' }} />
           </div>
           <nav style={{ display: 'flex', gap: '24px' }}>
             <Link to="/" style={{ color: 'var(--text-secondary)', textDecoration: 'none', fontSize: '14px', fontWeight: 500, transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = 'var(--primary)'} onMouseLeave={(e) => e.target.style.color = 'var(--text-secondary)'}>Home</Link>

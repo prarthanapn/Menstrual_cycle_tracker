@@ -1,3 +1,4 @@
+// Express server for menstrual health tracker app
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -14,39 +15,29 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const BASE_URL = process.env.BASE_URL?.replace(/\/$/, '') || null;
 
-// Check AI backend availability
+const getBaseUrl = (req) => BASE_URL || `${req.protocol}://${req.get('host')}`;
+
+// Check if OpenAI API key is configured
 const checkAIBackend = async () => {
-  const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434/api/generate';
-  const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || process.env.HF_API_KEY || null;
+  const OPENAI_API_KEY = process.env.OPENAI_API_KEY || null;
 
-  let aiStatus = '⚠️  No AI model configured (using rule-based responses)';
+  let aiStatus = '[WARNING] No AI model configured (using rule-based responses)';
 
-  // Check Ollama
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(OLLAMA_API_URL.replace('/api/generate', ''), { signal: controller.signal });
-    clearTimeout(timeoutId);
-    if (res.ok) {
-      aiStatus = '✅ Ollama available (using Mistral/Llama)';
-    }
-  } catch (e) {
-    // Ollama not available, check HF
-    if (HUGGINGFACE_API_KEY) {
-      aiStatus = '✅ Hugging Face Inference API configured (fallback mode)';
-    }
+  if (OPENAI_API_KEY) {
+    aiStatus = '[OK] OpenAI API configured';
   }
 
   return aiStatus;
 };
 
-// Middleware
+// CORS and body parser middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Routes
+// Register feature routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/cycles', cycleRoutes);
@@ -54,32 +45,62 @@ app.use('/api/symptoms', symptomRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/chat', chatbotRoutes);
 
-// Root endpoint
+// API status endpoint
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'Menstrual Health Tracker API', status: 'running', apiUrl: `http://localhost:${PORT}/api` });
-});
+  const baseUrl = getBaseUrl(req);
 
-// Health check
-app.get('/api/health', async (req, res) => {
-  const aiStatus = await checkAIBackend();
-  res.status(200).json({ status: 'Backend is running', ai_model: aiStatus, timestamp: new Date() });
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error',
-    status: err.status || 500,
+  res.status(200).json({
+    message: 'Menstrual Health Tracker API',
+    status: 'running',
+    baseUrl,
+    apiUrl: `${baseUrl}/api`
   });
 });
 
-// Start server
-app.listen(PORT, async () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-  
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
   const aiStatus = await checkAIBackend();
-  console.log(`🤖 ${aiStatus}`);
-  console.log(`💡 Note: Chatbot will use rule-based responses if AI model is unavailable`);
+  res.status(200).json({
+    status: 'Backend is running',
+    ai_model: aiStatus,
+    timestamp: new Date()
+  });
+});
+
+// Check OpenAI configuration
+app.get('/api/ai-check', async (req, res) => {
+  try {
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY || null;
+    const status = OPENAI_API_KEY ? 'OK' : 'NOT_CONFIGURED';
+    res.status(200).json({
+      openai: {
+        configured: !!OPENAI_API_KEY,
+        status
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Error handler middleware
+app.use((err, req, res, next) => {
+  console.error('[ERROR]', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal Server Error',
+    status: err.status || 500
+  });
+});
+
+// Start server and log startup info
+app.listen(PORT, async () => {
+  if (BASE_URL) {
+    console.log(`[SERVER] Running on ${BASE_URL}`);
+    console.log(`[SERVER] Health check: ${BASE_URL}/api/health`);
+  } else {
+    console.log(`[SERVER] Running on port ${PORT}`);
+    console.log('[SERVER] Health check: /api/health');
+  }
+  const aiStatus = await checkAIBackend();
+  console.log(`[AI] ${aiStatus}`);
 });

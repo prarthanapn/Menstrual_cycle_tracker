@@ -95,6 +95,17 @@ const Dashboard = ({ onLogout }) => {
   const symptomLabels = Object.keys(symptomCounts)
   const symptomValues = symptomLabels.map((k) => symptomCounts[k])
 
+  // Mood tracking
+  const moodCounts = symptoms.reduce((acc, s) => {
+    if (s.mood) {
+      acc[s.mood] = (acc[s.mood] || 0) + 1
+    }
+    return acc
+  }, {})
+
+  const moodLabels = Object.keys(moodCounts)
+  const moodValues = moodLabels.map((k) => moodCounts[k])
+
   // Cycle Frequency: group cycles by month (last 6 months)
   const cyclesByMonth = {}
   cycles
@@ -112,6 +123,77 @@ const Dashboard = ({ onLogout }) => {
   // Cycle Trend: labels are start dates (skip first) and values are cycleLengths
   const trendLabels = cycleStarts.slice(1).map((d) => d.toLocaleDateString())
   const trendValues = cycleLengths
+
+  // --- PMS Pattern Formation (heatmap-like) ---
+  // Symptom types we track
+  const symptomTypes = ['Cramps', 'Headache', 'Bloating', 'Nausea']
+
+  // Build mapping of cycle_id -> cycle start date
+  const cycleStartById = {}
+  cycles.forEach((c) => {
+    const id = c.cycle_id || c.id || c._id
+    if (id) cycleStartById[id] = new Date(c.start_date)
+  })
+
+  // Aggregate counts per cycle day for each symptom
+  const daySymptomCounts = {} // {day: {symptom: count}}
+  let maxCycleDay = 0
+  symptoms.forEach((s) => {
+    const cid = s.cycle_id
+    const start = cid ? cycleStartById[cid] : null
+    if (!start || !s.log_date) return
+    const day = daysBetween(start, new Date(s.log_date)) + 1
+    if (day < 1) return
+    if (day > maxCycleDay) maxCycleDay = day
+    if (!daySymptomCounts[day]) daySymptomCounts[day] = {}
+    symptomTypes.forEach((sym) => {
+      const has = s.symptoms && s.symptoms.includes(sym)
+      if (has) daySymptomCounts[day][sym] = (daySymptomCounts[day][sym] || 0) + 1
+    })
+  })
+
+  const heatmapLabels = Array.from({ length: Math.max(maxCycleDay, 14) }, (_, i) => String(i + 1))
+  const heatmapDatasets = symptomTypes.map((sym, idx) => ({
+    label: sym,
+    data: heatmapLabels.map((l) => (daySymptomCounts[Number(l)] ? daySymptomCounts[Number(l)][sym] || 0 : 0)),
+    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#9B59B6'][idx % 4],
+    stack: 'symptoms',
+  }))
+
+  const pmsHeatmapData = {
+    labels: heatmapLabels,
+    datasets: heatmapDatasets,
+  }
+
+  const pmsHeatmapOptions = {
+    responsive: true,
+    plugins: { legend: { position: 'top' } },
+    scales: {
+      x: { stacked: true, title: { display: true, text: 'Cycle Day' } },
+      y: { stacked: true, title: { display: true, text: 'Reports (count)' } },
+    },
+  }
+
+  // --- Flow Intensity Summary (pie) ---
+  // Extract flow level from symptom entries (flow_level or discharge)
+  const flowCategories = { Light: 0, Moderate: 0, Heavy: 0, Spotting: 0 }
+  symptoms.forEach((s) => {
+    const fl = s.flow_level || (typeof s.discharge === 'string' ? s.discharge.toLowerCase() : '')
+    if (typeof fl === 'number') {
+      if (fl <= 1) flowCategories.Light++
+      else if (fl === 2) flowCategories.Moderate++
+      else if (fl >= 3) flowCategories.Heavy++
+    } else if (typeof fl === 'string') {
+      if (fl.includes('spot') || fl.includes('spotting')) flowCategories.Spotting++
+      else if (fl.includes('light')) flowCategories.Light++
+      else if (fl.includes('heavy')) flowCategories.Heavy++
+      else if (fl.includes('medium') || fl.includes('moderate')) flowCategories.Moderate++
+    }
+  })
+
+  // Filter out categories with 0 count
+  const flowLabels = Object.keys(flowCategories).filter((k) => flowCategories[k] > 0)
+  const flowValues = flowLabels.map((k) => flowCategories[k])
 
   // Next predicted period representation: last start -> predicted date
   // nextMarkerLabels will be computed after nextPeriod is available
@@ -259,6 +341,30 @@ const Dashboard = ({ onLogout }) => {
                   <div style={{ color: 'var(--text-secondary)' }}>Not enough cycle history</div>
                 )}
               </div>
+
+              {/* Most Common Mood Chart */}
+              <div className="card" style={{ padding: '12px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>Mood Distribution</h3>
+                {moodLabels.length > 0 ? (
+                  <Bar
+                    data={{ labels: moodLabels, datasets: [{ label: 'Frequency', data: moodValues, backgroundColor: ['#2ECC71', '#95A5A6', '#E74C3C', '#E91E63', '#3498DB'].slice(0, moodLabels.length), borderRadius: 6 }] }}
+                    options={{ responsive: true, indexAxis: 'y', scales: { x: { beginAtZero: true } }, plugins: { legend: { display: false } } }}
+                  />
+                ) : (
+                  <div style={{ color: 'var(--text-secondary)' }}>Log your mood to see patterns</div>
+                )}
+              </div>
+
+              {/* PMS Pattern Heatmap (stacked bar approximation) */}
+              <div className="card" style={{ padding: '12px' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>PMS Pattern (cycle day vs symptoms)</h3>
+                {symptoms.length > 0 ? (
+                  <Bar data={pmsHeatmapData} options={pmsHeatmapOptions} />
+                ) : (
+                  <div style={{ color: 'var(--text-secondary)' }}>No symptom logs to display</div>
+                )}
+              </div>
+
             </div>
         {error && (
           <div

@@ -19,8 +19,8 @@ export default function Home() {
         }}
       >
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ fontSize: '22px', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            ♀️ HarmonyCycle
+          <div style={{ fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <img src="/logo.png" alt="HarmonyCycle" style={{ height: '80px', width: 'auto' }} />
           </div>
           <div style={{ display: 'flex', gap: '12px' }}>
             <button className="btn btn-outline" onClick={() => navigate('/login')}>

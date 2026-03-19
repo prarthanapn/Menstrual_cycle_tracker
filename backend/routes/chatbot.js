@@ -1,3 +1,4 @@
+// Chatbot route - process user messages and save to database
 import express from 'express';
 import { verifyToken } from '../middleware/auth.js';
 import pool from '../db.js';
@@ -5,8 +6,7 @@ import { getAIResponse } from '../utils/ai-helper.js';
 
 const router = express.Router();
 
-// POST /api/chat
-// Process user message and return AI response
+// POST /api/chat - send message and get AI response
 router.post('/', verifyToken, async (req, res) => {
   try {
     const { user_message } = req.body;
@@ -16,10 +16,10 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'user_message is required' });
     }
 
-    // Get AI response
+    // Get response from AI or rules
     const { bot_response, triage_level } = await getAIResponse(user_message);
 
-    // Store chat log in database
+    // Save conversation to database
     const connection = await pool.getConnection();
     const query = `
       INSERT INTO chatbot_logs (user_id, user_message, bot_response, triage_level, chat_time)
@@ -35,6 +35,7 @@ router.post('/', verifyToken, async (req, res) => {
 
     connection.release();
 
+    // Return response with metadata
     res.status(200).json({
       chat_id: result.insertId,
       user_message,
@@ -43,7 +44,8 @@ router.post('/', verifyToken, async (req, res) => {
       timestamp: new Date(),
     });
   } catch (error) {
-    console.error('Chatbot error:', error);
+    // Log errors for debugging
+    console.error('[CHATBOT] Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
